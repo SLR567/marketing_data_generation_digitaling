@@ -6,6 +6,7 @@ from urllib.request import urlretrieve
 
 def images_download(input_file,output_file):
     # 读取 JSON 文件
+    data_processed=[]
     with open(input_file, 'r') as f:
         data = json.load(f)
         
@@ -20,7 +21,7 @@ def images_download(input_file,output_file):
     
     # 遍历 JSON 数据并下载图片
     for item in data:
-        image_url = item['image_cover']
+        image_url = item['image_url']
         image_filename = os.path.basename(image_url)
         image_path = os.path.join(img_dir_cover, image_filename)
     
@@ -30,7 +31,7 @@ def images_download(input_file,output_file):
             f.write(response.content)
     
         # 替换图片网址为本地路径
-        item['image_cover'] = image_path
+        item['image_url'] = image_path
     
         for context in item['context']:
             if 'image' in context:
@@ -38,9 +39,17 @@ def images_download(input_file,output_file):
                 image_filename = os.path.join(img_dir_context, os.path.basename(image_url_context))
                 urlretrieve(image_url_context, image_filename)
                 context['image'] = image_filename
+
+        item_processed={
+                        'image_cover': image_path,
+                        'title': item['title'],
+                        'article_url': item['article_url'],
+                        'context' : item['context']
+        }
+        data_processed.append(item_processed)
     
     # 将更新后的数据保存到新的 JSON 文件
     with open(output_file, 'w') as f:
-        json.dump(data, f, indent=2)
+        json.dump(data_processed, f, indent=2)
     
     print('数据已保存到文件中')
